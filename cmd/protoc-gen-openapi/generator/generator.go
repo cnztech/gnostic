@@ -704,6 +704,10 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 
 		for _, method := range service.Methods {
 			comment := g.filterCommentString(method.Comments.Leading)
+			// Skip methods that don't have a client tag.
+			if !isClientMethod(comment) {
+				continue
+			}
 			inputMessage := method.Input
 			outputMessage := method.Output
 			operationID := service.GoName + "_" + method.GoName

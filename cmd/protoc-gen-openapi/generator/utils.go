@@ -16,6 +16,7 @@
 package generator
 
 import (
+	"regexp"
 	"strings"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -61,4 +62,31 @@ func getValueKind(message protoreflect.MessageDescriptor) string {
 func getValueField(message protoreflect.MessageDescriptor) protoreflect.FieldDescriptor {
 	fields := message.Fields()
 	return fields.ByName("value")
+}
+
+func tagsFromComment(comment string) []string {
+	re := regexp.MustCompile(`Tags\s*:\s*(\S+)`)
+	comments := strings.Split(comment, "\n")
+	tags := []string{}
+	for _, comment := range comments {
+		matches := re.FindStringSubmatch(comment)
+		if matches == nil {
+			continue
+		}
+		for _, t := range strings.Split(strings.Trim(matches[1], " "), ",") {
+			tags = append(tags, strings.ToLower(strings.Trim(t, " ")))
+		}
+		break
+	}
+	return tags
+}
+
+func isClientMethod(comment string) bool {
+	tags := tagsFromComment(comment)
+	for _, tag := range tags {
+		if tag == "client" {
+			return true
+		}
+	}
+	return false
 }
